@@ -1,0 +1,37 @@
+# docker-compose.yml - CRaC warm-up Docker Compose 設定
+# 使用方式：
+#   1. 建立 checkpoint: docker compose up checkpoint
+#   2. 從 checkpoint 啟動: docker compose up restore
+
+services:
+  # 從 checkpoint 還原並執行的服務
+  mng-web:
+    container_name: mng-web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    privileged: true
+    ports:
+      - "18080:18080"
+    volumes:
+      # 掛載 checkpoint 資料
+      - ../checkpoint:/checkpoint:ro
+      - /root/casino-images:/app/casino-images
+      - /root/logs/mng:/app/logs
+      - /root/checkpoint:/app/checkpoint  # CRaC checkpoint directory
+      # Mount host reports Python 報表生成對應的目錄
+      - /root/reports:/app/reports
+      # Mount Python report scripts (這樣設定報表.py修改後不需重新 build，更新檔案就好)
+      - /root/paper-report-feature:/app/paper-report-feature
+      # Mount host Python 3.10 (報表python在機器上的執行檔)
+      - /usr/local/bin/python3.10:/usr/local/bin/python3.10:ro
+      - /usr/local/lib/python3.10:/usr/local/lib/python3.10:ro
+    environment:
+      SPRING_PROFILES_ACTIVE: uat
+      # Python report output directory
+      REPORT_OUTPUT_DIR: /app/reports/
+      # Python executable path (mounted from host)
+      REPORT_PYTHON_EXECUTABLE: /usr/local/bin/python3.10
+      # Timezone
+      TZ: Asia/Taipei
+    network_mode: host

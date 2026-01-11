@@ -1,0 +1,25 @@
+# docker-compose.yml - CRaC warm-up Docker Compose 設定
+# 使用方式：
+#   1. 建立 checkpoint: docker compose up checkpoint
+#   2. 從 checkpoint 啟動: docker compose up restore
+
+services:
+  # 建立 checkpoint 的服務
+  checkpoint:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cms-crac:latest  # 建置後的 image 名稱
+    container_name: cms-checkpoint
+    # CRaC 需要特權模式或適當的 capabilities
+    privileged: true
+    # 或者使用 capabilities (更安全):
+    # cap_add:
+    #   - SYS_PTRACE
+    #   - CHECKPOINT_RESTORE
+    volumes:
+      # 將 checkpoint 資料輸出到 host
+      - ../checkpoint:/checkpoint
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    network_mode: host
